@@ -1,7 +1,8 @@
 const fs = require('fs');
+const { default: parseMD } = require('parse-md');
 
 
-
+console.log(parseMD)
 
 function walk (path){
     fs.readdir(path, (err, values) => {
@@ -10,6 +11,7 @@ function walk (path){
                 const isDirectory = fs.statSync(`${path}/${dirItem}`).isDirectory();
                 if(!isDirectory && dirItem.match(/\.md$/ig)){
                     console.log(`${path}/${dirItem}`);
+                    parseMDtoHTML(`${path}/${dirItem}`);
                 } else {
                     walk(`${path}/${dirItem}`)
                 }
@@ -17,8 +19,6 @@ function walk (path){
         } else console.log(err);
 
     });
-
-
 
 
 
@@ -36,8 +36,10 @@ function walk (path){
     // });
 }
 
-function parseMDtoHTML(){
-
+function parseMDtoHTML(path){
+    const str = fs.readFileSync(path, 'utf8');
+    const { metadata, content } = parseMD(str);
+    console.log(metadata, content);
 }
 
 function generateIndex(){

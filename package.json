@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/JohnSnow93/node-site-generator/issues"
   },
-  "homepage": "https://github.com/JohnSnow93/node-site-generator#readme"
+  "homepage": "https://github.com/JohnSnow93/node-site-generator#readme",
+  "dependencies": {
+    "parse-md": "^2.0.2"
+  }
 }
