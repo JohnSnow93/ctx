@@ -1,8 +1,8 @@
 const fs = require('fs');
 const { default: parseMD } = require('parse-md');
-
-
-console.log(parseMD)
+const MarkdownIt = require('markdown-it');
+const del = require('del');
+md = new MarkdownIt();
 
 function walk (path){
     fs.readdir(path, (err, values) => {
@@ -37,13 +37,37 @@ function walk (path){
 }
 
 function parseMDtoHTML(path){
-    const str = fs.readFileSync(path, 'utf8');
-    const { metadata, content } = parseMD(str);
-    console.log(metadata, content);
+    try {
+        const str = fs.readFileSync(path, 'utf8');
+        const { metadata, content } = parseMD(str);
+        if(metadata && content){
+            const { title, date } = metadata;
+
+            const mdHtml = md.render(content);
+            const articleHtml = `<article>
+                <h2 class="article-title">${title}</h2>
+                <p class="article-date">${date.toLocaleDateString()}</p>
+                ${mdHtml}
+            </article>`;
+            const fileTitle = title.replace('/\s/g', '-');
+            fs.writeFileSync(`./public/articles/${fileTitle}.html`, articleHtml);
+        } else {
+            throw new Error('An Error Occur in (function parseMDtoHTML)');
+        }
+    } catch (e) {
+        console.log(e)
+    }
+
 }
 
-function generateIndex(){
+function generateIndex(content, path){
 
 }
 
-walk('./src');
+
+function start() {
+    del(['./public/articles/**']);
+    walk('./src');
+}
+
+start();
