@@ -49,8 +49,11 @@ function parseMDtoHTML(path){
                 <p class="article-date">${date.toLocaleDateString()}</p>
                 ${mdHtml}
             </article>`;
+            console.log(title)
             const fileTitle = title.replace('/\s/g', '-');
-            fs.writeFileSync(`./public/articles/${fileTitle}.html`, articleHtml);
+            fs.writeFile(`./public/articles/${fileTitle}.html`, articleHtml, function () {
+                console.log(`写入${fileTitle}.html 成功`);
+            });
         } else {
             throw new Error('An Error Occur in (function parseMDtoHTML)');
         }

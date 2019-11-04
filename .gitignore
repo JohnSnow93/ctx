@@ -5,6 +5,7 @@ _roadhog-api-doc
 
 # production
 /dist
+/public
 
 .classpath
 
