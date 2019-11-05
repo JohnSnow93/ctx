@@ -26,8 +26,8 @@ function parseMDtoHTML(paths = []){
         // indexData之后用于生成首页
         const mdHtml = md.render(content);
         const articleHtml = `<article>
-                <h2 class="article-title">${title}</h2>
-                <p class="article-date">${date.toLocaleDateString()}</p>
+                <h2>${title}</h2>
+                <p>${date.toLocaleDateString()}</p>
                 ${mdHtml}
             </article>`;
         const fileTitle = title.replace('/\s/g', '-');
