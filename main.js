@@ -4,7 +4,7 @@ const MarkdownIt = require('markdown-it');
 const walkdir = require('walkdir');
 const del = require('del');
 
-md = new MarkdownIt();
+const md = new MarkdownIt();
 
 async function walk (srcPath){
     let result = await walkdir.async(srcPath,{return_object:true});
@@ -32,7 +32,7 @@ function parseMDtoHTML(paths = []){
             </article>`;
         const fileTitle = title.replace('/\s/g', '-');
         const writePath = `./public/articles/${fileTitle}.html`;
-        fs.writeFileSync(writePath, articleHtml);
+        fs.writeFileSync(writePath, htmlTemplate(articleHtml, '文章页', true));
         indexData.push({ ...metadata, fileTitle });
     }
     return indexData;
@@ -55,13 +55,13 @@ function generateIndex(indexData = []){
     });
 }
 
-function htmlTemplate(content, title = '站点标题'){
+function htmlTemplate(content, title = '站点标题', isArticle = false){
     return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>站点标题</title>
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="${isArticle ? '../styles.css' : './styles.css'}"> 
 </head>
 <body>
 <header>${title}</header>
@@ -75,7 +75,7 @@ function htmlTemplate(content, title = '站点标题'){
 
 async function start() {
     // 1. 删除上一次生成的静态文件
-    del(['./public/articles/**', './public/index.html']);
+    del(['./public/articles/**.html', './public/index.html']);
     // 2. 收集src目录下的所有markdown文件的路径
     const paths = await walk('./src');
     // 3. 读取所有markdown文件并生成html
