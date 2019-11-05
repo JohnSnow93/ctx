@@ -5,7 +5,8 @@ _roadhog-api-doc
 
 # production
 /dist
-/public
+/public/index.html
+/public/articles
 
 .classpath
 

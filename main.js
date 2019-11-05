@@ -1,76 +1,87 @@
 const fs = require('fs');
 const { default: parseMD } = require('parse-md');
 const MarkdownIt = require('markdown-it');
+const walkdir = require('walkdir');
 const del = require('del');
+
 md = new MarkdownIt();
 
-function walk (path){
-    fs.readdir(path, (err, values) => {
-        if(!err){
-            values.forEach((dirItem) => {
-                const isDirectory = fs.statSync(`${path}/${dirItem}`).isDirectory();
-                if(!isDirectory && dirItem.match(/\.md$/ig)){
-                    console.log(`${path}/${dirItem}`);
-                    parseMDtoHTML(`${path}/${dirItem}`);
-                } else {
-                    walk(`${path}/${dirItem}`)
-                }
-            });
-        } else console.log(err);
-
+async function walk (srcPath){
+    let result = await walkdir.async(srcPath,{return_object:true});
+    const mdPaths = [];
+    Object.entries(result).forEach(([path, fileStatus]) => {
+        if(!fileStatus.isDirectory() && path.match(/\.md$/ig)){
+            mdPaths.push(path);
+        }
     });
-
-
-
-    // dirList.forEach(function(item){
-    //     // if(fs.statSync(path + '/' + item).isFile()){
-    //     //     fileList.push(path + '/' + item);
-    //     // }
-    //     console.log(item)
-    // });
-
-    // dirList.forEach(function(item){
-    //     if(fs.statSync(path + '/' + item).isDirectory()){
-    //         walk(path + '/' + item);
-    //     }
-    // });
+    return mdPaths;
 }
 
-function parseMDtoHTML(path){
-    try {
-        const str = fs.readFileSync(path, 'utf8');
+function parseMDtoHTML(paths = []){
+    let indexData = [];
+    for (let i = 0; i < paths.length; i++) {
+        const str = fs.readFileSync(paths[i], 'utf8');
         const { metadata, content } = parseMD(str);
-        if(metadata && content){
-            const { title, date } = metadata;
-
-            const mdHtml = md.render(content);
-            const articleHtml = `<article>
+        const { title, date } = metadata;
+        // indexData之后用于生成首页
+        const mdHtml = md.render(content);
+        const articleHtml = `<article>
                 <h2 class="article-title">${title}</h2>
                 <p class="article-date">${date.toLocaleDateString()}</p>
                 ${mdHtml}
             </article>`;
-            console.log(title)
-            const fileTitle = title.replace('/\s/g', '-');
-            fs.writeFile(`./public/articles/${fileTitle}.html`, articleHtml, function () {
-                console.log(`写入${fileTitle}.html 成功`);
-            });
-        } else {
-            throw new Error('An Error Occur in (function parseMDtoHTML)');
-        }
-    } catch (e) {
-        console.log(e)
+        const fileTitle = title.replace('/\s/g', '-');
+        const writePath = `./public/articles/${fileTitle}.html`;
+        fs.writeFileSync(writePath, articleHtml);
+        indexData.push({ ...metadata, fileTitle });
     }
+    return indexData;
 
 }
 
-function generateIndex(content, path){
+function generateIndex(indexData = []){
+    const listHTML = indexData.map(i => {
+        return `
+<li>
+    <a href="./articles/${i.fileTitle}.html">${i.title}</a>
+    <time>${i.date.toLocaleDateString()}</time>
+</li>
+`
+    }).join('');
 
+    const indexHTML = htmlTemplate(listHTML);
+    fs.writeFile('./public/index.html', indexHTML, function () {
+        console.log(`写入index.html 成功`);
+    });
 }
 
+function htmlTemplate(content, title = '站点标题'){
+    return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>站点标题</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header>${title}</header>
+<ul>
+    ${content}
+</ul>
+<footer> Simple Blog 2019-2020 </footer>
+</body>
+</html>
+`;}
 
-function start() {
-    del(['./public/articles/**']);
-    walk('./src');
+async function start() {
+    // 1. 删除上一次生成的静态文件
+    del(['./public/articles/**', './public/index.html']);
+    // 2. 收集src目录下的所有markdown文件的路径
+    const paths = await walk('./src');
+    // 3. 读取所有markdown文件并生成html
+    const indexData = await parseMDtoHTML(paths);
+    // 4. 生成首页index.html
+    await generateIndex(indexData);
 }
 
 start();
