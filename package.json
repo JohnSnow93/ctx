@@ -21,7 +21,7 @@
   "homepage": "https://github.com/JohnSnow93/node-site-generator#readme",
   "dependencies": {
     "del": "^5.1.0",
-    "markdown-it": "^10.0.0",
+    "markdown-it": "^12.3.2",
     "parse-md": "^2.0.2",
     "walkdir": "^0.4.1"
   }
